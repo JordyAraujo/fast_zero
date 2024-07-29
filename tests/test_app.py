@@ -96,7 +96,7 @@ def test_update_user(client, user):
     assert response.json() == {
         'username': 'testusername2',
         'email': 'test@test.com',
-        'id': 1,
+        'id': user.id,
     }
 
 
@@ -125,3 +125,15 @@ def test_delete_inexistent_user(client):
     response = client.delete('/users/2')
     assert response.status_code == HTTPStatus.NOT_FOUND
     assert response.json() == {'detail': 'User not found'}
+
+
+def test_get_token(client, user):
+    response = client.post(
+        '/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+
+    token = response.json()
+    assert response.status_code == HTTPStatus.OK
+    assert token['token_type'] == 'Bearer'
+    assert 'access_token' in token
