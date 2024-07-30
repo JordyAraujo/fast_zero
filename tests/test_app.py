@@ -57,7 +57,9 @@ def test_create_user_with_existing_email(client, user):
 
 
 def test_read_users_empty(client):
-    response = client.get('/users/')
+    response = client.get(
+        '/users/',
+    )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'users': []}
 
@@ -83,14 +85,15 @@ def test_read_inexistent_user(client):
     assert response.json() == {'detail': 'User not found'}
 
 
-def test_update_user(client, user):
+def test_update_user(client, user, token):
     response = client.put(
-        '/users/1',
+        f'/users/{user.id}',
         json={
             'password': '123',
             'username': 'testusername2',
             'email': 'test@test.com',
         },
+        headers={'Authorization': f'Bearer {token}'},
     )
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
@@ -100,31 +103,37 @@ def test_update_user(client, user):
     }
 
 
-def test_update_inexistent_user(client):
+def test_update_another_user(client, token):
     response = client.put(
         '/users/2',
         json={
             'password': '123',
             'username': 'testusername2',
             'email': 'test@test.com',
-            'id': 1,
+            'id': 2,
         },
+        headers={'Authorization': f'Bearer {token}'}
     )
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
 
 
-def test_delete_user(client, user):
-    response = client.delete('/users/1')
+def test_delete_user(client, user, token):
+    response = client.delete(
+        f'/users/{user.id}', headers={'Authorization': f'Bearer {token}'}
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_delete_inexistent_user(client):
-    response = client.delete('/users/2')
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert response.json() == {'detail': 'User not found'}
+def test_delete_another_user(client, token):
+    response = client.delete(
+        '/users/2',
+        headers={'Authorization': f'Bearer {token}'}
+    )
+    assert response.status_code == HTTPStatus.FORBIDDEN
+    assert response.json() == {'detail': 'Not enough permissions'}
 
 
 def test_get_token(client, user):
