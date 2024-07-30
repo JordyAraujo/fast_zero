@@ -15,13 +15,13 @@ from fast_zero.models import User
 from fast_zero.settings import Settings
 
 pwd_context = PasswordHash.recommended()
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
+oauth2_schema = OAuth2PasswordBearer(tokenUrl='auth/token')
 settings = Settings()
 
 
 def get_current_user(
     session: Session = Depends(get_session),
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(oauth2_schema),
 ):
     credentials_exception = HTTPException(
         status_code=HTTPStatus.UNAUTHORIZED,
